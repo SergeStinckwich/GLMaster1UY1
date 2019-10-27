@@ -1,19 +1,21 @@
-!! Crafting a simple embedded DSL with Pharo
+!! Concevoir un DSL embarqué avec Pharo
 @cha:dsl
 
-In this chapter you will develop a simple domain specific language (DSL) for rolling dice. Players of games such as Dungeons \& Dragons are familiar with such DSL. An example of such DSL is the following expression: ==2 D20 + 1 D6== which means that we should roll two 20-faces dice and one 6-faces die. 
-It is called an embedded DSL because the DSL uses the syntax of the language used to implement it. Here we use the Pharo syntax to implement the Dungeons \& Dragons rolling die language. 
+Dans ce chapitre, nous allons déveloper un langage métier (Domain-Specific Language or DSL) simple pour lancer des dés.
+Des joueurs de jeu de rôles comme Dungeons \& Dragons sont familier de cette forme de DSL.
+Un exemple d'utilisation de ce DSL est l'expression suivante: ==2 D20 + 1 D6== ce qui signifie que nous lancons deux dés de 20 faces et un dé de 6 faces.
+C'est appellé un DSL embarqué car il utilise la syntaxe du langage qui l'implémente. Ici nous utilisons la syntaxe de Pharo afin d'implémenter ce langage de lancer de dés.
 
-This little exercise shows how we can (1) simply reuse traditional operator such as ==\+==, (2) develop an embedded domain specific language and (3) use class extensions (the fact that we can define a method in another package than the one of the class of the method).
+Ce petit exercice va vous montrer comment (1) réutiliser simplement un opérateur que le ==\+==, (2) développer un langage spécifique embarqué et (3) utiliser des extensions de classes (le fait de pouvor définir une méthode dans un autre package que celui de la classe de la méthode).
 
-!!! Getting started
+!!! Pour commencer
 
-Using the code browser, define a package named ==Dice== or any name you like.
+En utilisant le navigateur de classe, définir un package nommé ==Dice== ou tout autre nom que vous aimez lui donner.
 
-!!!! Create a test 
-It is always empowering to verify that the code we write is always working as we are defining it. For this purpose you should create a unit test. Remember unit testing was promoted by K. Beck first in the ancestor of Pharo. Nowadays this is a common practice but it is always useful to remember our roots!
+!!!! Créer un test
+Il est toujours mieux de vérifier que le code que nous écrivons fonctionne toujours comme nous le souhaitons. Pour cela, nous allons créer un test unitaire. Les tests unitaires ont été créer par Kent Beck en Smalltalk, l'ancêtre de Pharo. C'est une pratique répandue dans de nombreux langages de programmation.
 
-Define the class ==DieTest== as a subclass of ==TestCase== as follows: 
+Définir la classe ==DieTest== comme une sous-classe de ==TestCase== comme suit: 
 
 [[[
 TestCase subclass: #DieTest
@@ -22,35 +24,34 @@ TestCase subclass: #DieTest
 	package: 'Dice'
 ]]]
 
-What we can test is that the default number of faces of a die is 6. 
+Ce que nous pouvons tester est que le nombre de faces d'un dé par défaut est 6.
 
 [[[
 DieTest >> testInitializeIsOk
     self assert: Die new faces equals: 6
 ]]]
 
-If you execute the test, the system will prompt you to create a class ==Die==. Do it.
+Si vous exécutez ce test, le système va vous demander de créer un classe ==Die==. Faîtes le.
 
+!!!! Définir la classe Die
 
-!!!! Define the class Die
+La classe ==Die== hérite de la classe ==Object== et possède une seule variable d'instances ==faces== qui représente le nombre de faces que possède un dé. La figure *@figOneClassDiceDesign* donne la liste des messages à laquelle cette classe peut répondre.
 
-The class ==Die== inherits from ==Object== and it has an instance variable, ==faces== to represent the number of faces one instance will have. Figure *@figOneClassDiceDesign* gives an overview of the messages. 
-
-+A single class with a couple of messages. Note that the method ==withFaces:== is  a class method.>file://figures/OneClassDiceDesign.pdf|width=25|label=figOneClassDiceDesign+
++Classe Die avec ses messages. Notez que la méthode ==withFaces:== est une méthode de classe.>file://figures/OneClassDiceDesign.pdf|width=25|label=figOneClassDiceDesign+
 
 [[[
 Object subclass:
 	... Your solution ...
 ]]]
 
-In the ==initialization== protocol, define the method ==initialize== so that it simply sets the default number of faces to 6. 
+Dans le protocole ==initialization==, définir la méthode ==initialize== qui fixe simplement le nombre par défaut de faces d'un dé à 6.
 
 [[[
 Die >> initialize
 	... Your solution ...
 ]]]
 
-Do not hesitate to add a class comment. 
+N'hésitez à ajouter un commentaire de classe.
 
 Now define a method to return the number of faces an instance of ==Die== has.
 
@@ -59,29 +60,27 @@ Die >> faces
 	^ faces
 ]]]
 
-Now your tests should all pass (and turn green).
+Maintenant tous vos tests doivent passer (et devenir verts).
 
-!!! Rolling a die
-To roll a die you should use the method from Number ==atRandom== which draws randomly a 
-number between one and the receiver. For example ==10 atRandom== draws number between 1 to 10. 
-Therefore we define the method ==roll==:
+!!! Lancer un dé
+Afin de lancer un dé, nous devons utiliser la méthode ==atRandom== sur Number qui va tirer aléatoirement un nombre entre un et le receveur. Par exemple ==10 atRandom== tire un nombre entre 1 et 10.
+Nous définissons donc la méthode ==roll==:
 
 [[[
 Die >> roll
 	... Your solution ...
 ]]]
 
-Now we can create an instance ==Die new== and send it the message  ==roll== and get a result.
-Do ==Die new inspect== to get an inspector and then type in the bottom pane ==self roll==.
-You should get an inspector like the one shown in Figure *@figDiceNoDetail*. With it you can interact with a die by writing expression in the bottom pane.
+Maintenant nous pouvons créer un intance de dé avec ==Die new== et lui envoyer un message ==roll== et obtenir un résultat en retour.
+Faire ==Die new inspect== afin d'obtenir un inspecteur et ensuite dans le panneau du bas ==self roll==.
+Vous devriez obtenir un inspecteur comme celui de la figure *@figDiceNoDetail*.
+A l'aide de cet inspecteur, vous pouvez intéragir avec un dé en écrivant une expression dans le panneau du bas.
 
 +Inspecting and interacting with a die.>file://figures/DiceNoDetail.png|width=60|label=figDiceNoDetail+
 
- 
-
-!!! Creating another test
-But better, let us define a test that verifies that rolling a newly created dice with a default 6 faces only returns 
-value comprised between 1 and 6. This is what the following test method is actually specifying.
+!!! Créer un nouveau test
+Essayons maintenant un nouveau test afin de vérifier qui vérifie que lancer un nouveau dé va retourner une valeur entre 1 et 6.
+C'est ce que la méthode de test suivante spécifie.
  
 [[[
 DieTest >> testRolling
@@ -90,33 +89,30 @@ DieTest >> testRolling
 	10 timesRepeat: [ self assert: (d roll between: 1 and: 6) ]
 ]]]
 
-""Important"" Often it is better to define the test even before the code it tests. Why? Because you can think about the API of your objects and a scenario that illustrate their correct behavior. It helps you to program your solution.
+""Important"" Il est souvent bien mieux de définir un test avant le code qu'il teste. Pourquoi ? Parce que vous pouvez réfléchir sur l'API de votre objet et au scénario qui va illustrer son fonctionnement correct. Cela aide à programmer la solution de manière correcte.
 
+!!! Interface de création d'instance
+Nous voulons créer simplement des instances de ==Die==.
+Par exemple, créer un dé à 20 faces comme suit: ==Die withFaces: 20== plutôt que d'envoyer le message new à la classe de la façon suivante: ==Die new faces:20==.
+Les deux expressions créent le même dé mais la première est plus courte à écrire.
 
-!!! Instance creation interface
-We would like to get a simpler way to create ==Die== instances. For example we want to create a 20-faces die as follows: ==Die withFaces: 20== instead of always having to send the new message to the class as in ==Die new faces: 20==.
-Both expressions are creating the same die but one is shorter.
+Dans l'expression ==Die withFaces:==, le message ==withFaces:== est envoyé à la classe ==Die==.
+Il y a rien de nouveau dans cette façon de faire, nous envoyons constamment le message ==new== à ==Die== afin de créer des instances.
 
-Let us look at it: 
-- In the expression ==Die withFaces:==, the message ==withFaces:== is sent to the class ==Die==. It is not new, we constantly sent the message ==new== to ==Die== to create instances. 
-- Therefore we should define a method that will be executed 
-
-Let us define a test for it.
+Commençons par écrire un test: 
 
 [[[
 DieTest >> testCreationIsOk
 	self assert: (Die withFaces: 20) faces equals: 20
 ]]]
 
-What the test clearly shows is that we are sending a message to the ""class"" ==Die== itself.
+Le test montre bien que nous envoyons un message à la classe ==Die== directement.
 
+!!!! Définir une méthode de classe
 
-
-!!!! Defining a class method
-
-Define the ''class'' method ==withFaces:== as follows:
-- Click on the class button in the browser to make sure that you are editing a ""class"" method.
-- Define the method as follows: 
+Définir la méthode de ''classe'' ==withFaces:== comme suit:
+- Cliquer sur le button ''class'' dans le navigateur de classes afin d'assurer que nous éditons bien une méthode de classe.
+- Définir la méthode comme suit:
 
 [[[
 Die class >> withFaces: aNumber
@@ -127,27 +123,34 @@ Die class >> withFaces: aNumber
 	^ instance
 ]]]
 
-Let us explain this method
-- The method == withFaces:== creates an instance using the message ==new==. Since ==self== represents the receiver of the message and the receiver of the message is the class ==Die== itself then ==self== represents the class ==Die==. 
-- Then the method sends the message ==faces:== to the instance and 
-- Finally returns the newly created instance.
+Expliquons ce que nous faisons
+- la méthode ==withFaces:== crée un instance en utilisant le message ==new==. ==self== représente le receveur du message et le receveur est la classe ==Die== elle même.
+- puis ensuite la méthode envoie le message ==faces:== à l'instance crée et
+- finalement on retourne l'instance créée.
 
-Pay attention that a class method ==withFaces:== is sent to a class, and an instance method is sent to the newly created instance ==faces:==. Note that the class method could have also named ==faces:== or any name we want, it does not matter, it is executed when the receiver is the class ==Die==.
+La méthode de classe aurait pu être nommé différent comme ==faces:== ou tout autre nom. Cela n'est pas important. Mais quelque soit le nom donné, le message est exécuté sur un receveur (self) qui est une classe (==Die==).
 
-
-If you execute it will not work since we did not yet create the method ==faces:==. Now is the time to define it. Pay attention that method ==faces:== is sent to an instance of the class ==Die== and not the class itself. It is an instance method, therefore make sure that you deselect the class button before editing it.
+Si vous tentez d'exécuter ce code, cela ne va pas fonctionner, car nous n'avons pas encore créer la méthode ==faces:==.
+Il est temps de le faire maintenant.
+Faites attention que la méthode ==faces:== est envoyé à une instance de la class ==Die== et pas à la classe elle-même.
+C'est une méthode d'instance, donc assurer d'avoir désectionner le bouton class avant de l'éditer.
 
 [[[
 Die >> faces: aNumber
 	faces := aNumber
 ]]]
 
-Now your tests should run. So even if the class ==Die== could implement more behavior, we are ready to implement a die handle. 
+Maintenant votre test devrait passer au vert.
+On pourrait ajouter plus de comportement à la classe ==Die== mais intéressons nous maintenant à la possibilité d'implémenter une jet de plusieurs dés.
 
-""Important"" A class method is a method executed in reaction to messages sent to a ''class''. It is defined on the class side of the class. In ==Die withFaces: 20==, the message ==withFaces:== is sent to the class ==Die==. In ==Die new faces: 20==, the message ==new== is sent to the ''class'' ==Die== and the message ==faces:== is sent to the ''instance'' returned by ==Die new==. 
+""Important""
+Une méthode de class est une méthode qui s'exécutent en réaction à des messages envoyé à la classe.
+Elle est définit dans la partie classe d'une classe.
+Dans ==Die withFaces: 20==, le message ==withFaces:== est envoyé à la classe ==Die==.
+Dans ==Die new faces: 20==, le message ==new== est envoyé à la classe ==Die== et le message ==faces:== est envoyé à l'instance retourné par ==Die new==.
 
-!!!! [Optional] Alternate instance creation definition
- In a first reading you can skip this section. The ''class'' method definition ==withFaces:== above is strictly equivalent to the one below.
+!!!! [Optionel] Définition alternative pour la création d'instance
+In a first reading you can skip this section. The ''class'' method definition ==withFaces:== above is strictly equivalent to the one below.
 
 [[[
 Die class >> withFaces: aNumber
@@ -166,13 +169,12 @@ Without the use of ==yourself==, ==Die withFaces: 20== will return 33. With ==yo
 The trick is that ==yourself== is a simple method defined on ==Object== class: The message ==yourself== returns the receiver of a message.
 The use of ==;== sends the message to the receiver of the previous message (here ==faces:==).  The message ==yourself== is then sent to the object resulting from the execution of the expression ==self new== (which returns a new instance of the class ==Die==), as a consequence it returns the new instance. 
 
+!!! Première spécification d'un jet de plusieurs dés
+Définisson maintenant une nouvelle classe ==DieHandle== qui représente un jet de plusieurs dés.
+Voici l'API que nous voulons créer dans un premier temps (comme indiqué dans la figure *@fig:DiceDesign*).
+Nous créeons un nouveau jet de dé et nous lui ajoutons plusieurs dés.
 
-!!! First specification of a die handle
-Let us define a new class ==DieHandle== that represents a die handle. 
-Here is the API that we would like to offer for now (as shown in Figure *@fig:DiceDesign*). We create a new handle then add some dice to it.
-
-+A die handle is composed of dice.>file://figures/DiceDesign.pdf|width=60|label=fig:DiceDesign+
-
++Un jet de dés est composés de dés.>file://figures/DiceDesign.pdf|width=60|label=fig:DiceDesign+
 
 [[[
 DieHandle new 
@@ -181,7 +183,8 @@ DieHandle new
 	yourself
 ]]]
 
-Of course we will define tests first for this new class. We define the class ==DieHandleTest==.
+Bien sur, nous allons commencer par écrire des tests pour cette nouvelle classe.
+Nous définissons la classe ==DieHandleTest==.
 
 [[[
 TestCase subclass: #DieHandleTest
@@ -190,9 +193,11 @@ TestCase subclass: #DieHandleTest
 	package: 'Dice'
 ]]]
 
-!!!! Testing a die handle
-We define a new test method as follows. We create a new handle and add one die of 6 faces and one die of 10 faces.
-We verify that the handle is composed of two dice. 
+!!!! Tester un jet de plusieurs dés
+
+Nous définissons une nouvelle méthode de test comme suit.
+Nous créeons un nouveau jet de dés auquel nous ajoutons un dé à 6 faces et une autre dé à 10 faces.
+Nous vérifions que le jet de dés se compose de deux dés.
 
 [[[
 DieHandleTest >> testCreationAdding
@@ -204,8 +209,8 @@ DieHandleTest >> testCreationAdding
 	self assert: handle diceNumber = 2.
 ]]]
 
-In fact we can do it better. Let us add a new test method to verify that we can even add
-two dice having the same number of faces. 
+Nous pouvons faire mieux.
+Ajoutons encore un nouveau test qui vérifie que nous pouvons additionner deux dés ayant le même nombre de faces.
 
 [[[
 DieHandleTest >> testAddingTwiceTheSameDice
@@ -217,33 +222,36 @@ DieHandleTest >> testAddingTwiceTheSameDice
 	self assert: handle diceNumber = 2.
 ]]]
 
-Now that we specified what we want, we should implement the expected class and messages. 
-Easy!
+Maintenant que nous avons spécifié ce que nous voulons, il nous reste à implémenter la classe correspondante et les messages.
+Vous voyez que c'est facile.
 
-!!! Defining the DieHandle class
+!!! Définir la classe DieHandle
 
-The class ==DieHandle== inherits from ==Object== and it defines one instance variable to hold the dice it contains. 
+La classe ==DieHandle== hérite de ==Object== et définit une seule variable d'instance qui contient les dés.
 
 [[[
 Object subclass: ...
 	... Your solution ...
 ]]]
 
-We simply initialize it so that its instance variable ==dice== contains an instance of ==OrderedCollection==.
+Nous initialisons simplement la variable d'instance ==dice== avec une instance de la classe ==OrderedCollection==.
 
 [[[
 DieHandle >> initialize
 	... Your solution ...
 ]]]
 
-Then define a simple method ==addDie:== to add a die to the list of dice of the handle. You can use the message ==add:== sent to a collection.
+Puis nous définissons une méthode ==addDie:== afin d'ajouter un nouveau dé à la liste des dés du jet de dés.
+Vous pouvez utiliser le message ==add:== pour l'ajouter à la collection.
 
 [[[
 DieHandle >> addDie: aDie 
 	... Your solution ...
 ]]]
 
-Now you can execute the code snippet and inspect it. You should get an inspector as shown in Figure *@DieHandleNoDetail* 
+Nous pouvons exécuter le code qui suit et inspecter le résultat.
+Vous devriez obtenir un inspecteur comme celui de la figure *@DieHandleNoDetail* .
+
 [[[
 DieHandle new 
 	addDie: (Die withFaces: 6);
@@ -251,19 +259,18 @@ DieHandle new
 	yourself
 ]]]
 
-+Inspecting a DieHandle.>file://figures/DiceHandleNoDetail.png|width=60|label=DieHandleNoDetail+
++Inspecter un jet de dés (DieHandle).>file://figures/DiceHandleNoDetail.png|width=60|label=DieHandleNoDetail+
 
-
-Finally we should add the method ==diceNumber== to the ==DieHandle== class to be able to get the number of dice of the handle. We just return the size of the dice collection.
+Finalement nous pouvons ajouter la méthode ==diceNumber== à la classe ==DieHandle== afin d'obtenir le nombre de dés contenu dans un jet de dés. Nous retournons tout simplement le nombre d'élément de la collection contenant les dés.
 
 [[[
 DieHandle >> diceNumber  
 	^ dice size
 ]]]
 
-Now your tests should run and this is a good moment to save and publish your code. 
+Votre test devrait être maintenant vert.
 
-!!! Improving programmer experience
+!!! Améliorer la vie du programmeur
 
 Now when you open an inspector you cannot see well the dice that compose the die handle. Click on the ==dice== instance variable and you will only get a list of ==a Dice== without further information. What we would like to get is something like ==a Die (6)== or ==a Die (10)== so that in a glance we know the faces a die has. 
 
@@ -303,21 +310,21 @@ Die >> printOn: aStream
 
 As an exercise we let you browse the methods ==printString== on class ==Object== and ==print:== on class ==Stream==.
 
+!!! Lancer un jet de dés
 
-!!! Rolling a die handle
+Maintenant nous pouvons définir le lancer d'un jet de dés en simplement additionnant les faces des chacun des dés lancés.
+Implémenter la méthode ==roll== sur la classe ==DieHandle==.
+Cette méthode doit collecter les résultats de chacun des lancers des dés et les ajouter.
 
-Now we can define the rolling of a die handle by simply summing result of rolling each of its dice. 
-Implement the ==roll== method of the ==DieHandle== class. This method must collect the results of rolling each dice of the handle and sum them.
-
-You may want to have a look at the method ==sum== in the class ==Collection== or use a simple loop. 
+Vous pouvez jeter un coup d'oeil à la méthode ==sum== de la classe ==Collection== pour vous inspirer pour faire l'itération.
 
 [[[
 DieHandle >> roll
 	... Your solution ...
 ]]]
 
+Maintenant, nous pouvons envoyer le message ==rool== à un jet de dés.
 
-Now we can send the message ==roll== to a die handle.
 [[[
 handle := DieHandle new 
 		addDie: (Die withFaces: 6);
@@ -326,26 +333,32 @@ handle := DieHandle new
 handle roll
 ]]]
 
-Define a test to cover such behavior. Rolling a handle of n dice should be between n and the sum of the face number of each die. 
+Définir un test afin de spécifier un tel comportement.
+Lancer un jet de n dés doit retourner un nombre entre n et la somme des faces de chacun des dés.
 
 [[[
 DieHandleTest >> testRoll
 	... Your solution ...
 ]]]
 
-!!! About Dice and DieHandle API
+!!! A propos de l'API de Die et DieHandle
 
-It is worth to spend some times looking at the relationship between ==DieHandle== and ==Dice==. 
-A die handle is composed of dice. What is an important design decision is that the API of the main behavior (==roll==) is the same for a die or a die handle. You can send the message ==roll== to a die or a die handle. This is an important property.
+Nous allons passons un peu de temps à regarder la relation entre ==DieHandle== et ==Die==.
+Un jet de dés est composé de plusieurs dés.
+Une décision de conception que nous avons pris est que nous pouvons envoyer la même méthode ==roll== à un dé ou à un jet de dés.
+C'est une décision importante.
 
-Why? Because it means that from a client perspective, they can treat the receiver without having to take care about the kind of object it is manipulating. A client just sends the message ==roll== to an object and gets back a number (as shown in Figure *@figDieHandleComposition*). The client is not concerned by the fact that the receiver is composed out a simple object or a complex one. Such design decision supports the ''Don't ask, tell'' principle.
+Pourquoi ? Parce que cela signifie que du point de vue du client (c'est-à-dire celui qui utilise ces objets), on n'a pas besoin de considérer le type du receveur. Un client envoie juste un message ==roll== à un objet et obtient un nombre en retour (comme on le voir dans la figure *@figDieHandleComposition*.
+Le client n'a pas à s'occuper du fait que le receveur du message est un simple dé ou une composition de plusieurs dés.
+Une telle décision de conception suit le principe ''Don't ask, tell''.
 
-+A polymorphic API supports the ''Don't ask, tell'' principle.>file://figures/DiceHandleComposition.pdf|width=60|label=figDieHandleComposition+
++Une API polymorphique respectant le principe ''Don't ask, tell''.>file://figures/DiceHandleComposition.pdf|width=60|label=figDieHandleComposition+
 
+""Important"" Offrir une API polymorphique est un des fondements d'une bonne conception orientée objet.
+Elle permet de faire respecter le principe ''Don't ask, tell''.
+Les clients n'ont pas besoin de se préoccuper du type des objets avec lequels ils interagissent.
 
-""Important"" Offering polymorphic API is a tenet of good object-oriented design. It enforces the ''Don't ask, tell'' principle. Clients do not have to worry about the type of the objects to which they talk to. 
-
-For example we can write the following expression that adds a die and a dieHandle to a collection and collects the different values (we convert the result into an array so that we can print it in the book).
+Par exemple, nous pouvons écrire l'expression suivante pour ajouter un dé et un jet de dé à une collection puis collecter les différentes valeurs des dés (nous convertissons le résultat en tableau pour pouvoir l'afficher dans ce livre).
 
 [[[testcase=true
 | col |
@@ -356,44 +369,53 @@ col add: (DieHandle new addDie: (Die withFaces: 4); yourself).
 >>> #(17 3) 
 ]]]
 
-!!!! About composition
-Composite objects such as document objects (a book is composed of chapters, a chapter is composed of sections, a section is composed of paragraphs) often have a more complex composition relationship than the composition between a die and a die handle. Often the composition is recursive in the sense that an element can be the whole: for example, a diagram can be composed of lines, circles, and other diagrams. We will see an example of such composition in the Expression Chapter *@cha:expressions*.
+!!!! A propos de la composition
 
-!!! Role playing syntax
+Les objets composites comme les objets représentant un document (un livre est composé de chapitres, un chapitre est composé de sectrions, une section est composée de paragraphes). ont une relation de composition plus complexe que la composition entre un dé et un jet de dés. Souvent la composition est récursive dans sens où un élément peut être un tout aussi: par exemple, un diagramme peut être composé de lignes, cercles ou d'autres diagrammes.
 
-Now we are ready to offer a syntax following practice of role playing game, i.e., using ==2 D20== to create a handle of two dice with 20 faces each.  For this purpose we will define class extensions: we will define methods in the class ==Integer== but these methods will be only available when the package Dice will be loaded. 
+%We will see an example of such composition in the Expression Chapter *@cha:expressions*.
 
-But first let us specify  what we would like to obtain by writing a new test in the class ==DieHandleTest==. Remember
-to always take any opportunity to write tests.  When we execute ==2 D20== we  should get a new handle  composed of two
-dice and can verify that. This is what the method ==testSimpleHandle== is doing.
+!!! Syntaxe jeu de rôle
+
+Nous sommes prêt à définir une syntaxe suivant les pratiques d'un jeu de rôle, i.e en utilisant ==2 D20== pour créer un jet de dés de deux dés à 20 faces chacun. Afin de pouvoir faire, cela, nous allons définir des extensions de classes: nous allons définir des méthodes supplémentaires dans la class ==Integer== mais ces méthodes ne seront disponibles que lorsque le package Dice sera chargé.
+
+Commençons par spécifier ce que nous voulons obtenir en écrivant un nouveau test dans la classe ==DieHandleTest==.
+Il est toujours bien de sauté sur l'occasion d'écrire de nouveaux tests. Lorsque nous exécutons ==2 D20== nous devrions obtenir un nouveau jet dées composé de deux dés. C'est ce que fait la méthode ==testSimpleHandler== :
 
 [[[
 DieHandleTest >> testSimpleHandle
 	self assert: 2 D20 diceNumber = 2.
 ]]]
 
-Verify that the test is not working! It is much more satisfactory to get a test running when it was not working before. Now define the method ==D20== with a protocol named ==\*NameOfYourPackage== (=='\*Dice==' if you named your package =='Dice'==).
-The ==\*== (star) prefixing a protocol name indicates that the protocol and its methods belong to another package than the package of the class. Here we want to say that while the method ==D20== is defined in the class ==Integer==, it should be saved with the package ==Dice==. 
- 
-The method ==D20== simply creates a new die handle, adds the correct number of dice to this handle, and returns the handle.
+Commencer par vérifier que le test ne fonctionne pas !
+C'est encore plus satisfaisant de faire passer un test alors qu'il ne fonctionnait pas auparavant.
+Définissons la méthode ==D20== avec le protocole ==\*NameOfYourPackage== (=='\*Dice'== si vous avez intitulé votre package =='Dice'==).
+L'étoile ==\*== préfixant le nom du protocole indique que le protocole et la méthode appartiennent à un autre pacjage que le package de la classe. Ici nous voulons dire que même si la méthode ==D20== est définie dans la classe ==Integer==, elle doit être sauvegarder dans le package ==Dice==.
+
+La méthode ==D20== crée simple un nouveau jeu de dés, ajoute le nombre correct de ce jet de dés et le retourne comme résultat.
 
 [[[
 Integer >> D20
 	... Your solution ...
 ]]]
 
-!!!! About class extensions
+!!!! A propos des extensions de classes
 
-We asked you to place the method ==D20== in a protocol starting with a star and having the name of the package (=='*Dice'==) because we want this method to be saved (and packaged) together with the code of the classes we already created (==Die==, ==DieHandle==,...) 
-Indeed in Pharo we can define methods in classes that are not defined in our package. Pharoers call this action a class extension: we can add methods to a class that is not ours. For example ==D20== is defined on the class ==Integer==. Now such methods only make sense when the package ==Dice== is loaded. 
-This is why we want to save and load such methods with the package we created. This is why we are defining the protocol as =='*Dice'==.
-This notation is a way for the system to know that it should save the methods with the package and not with the package of the class ==Integer==. 
+Nous avons demandé de placer la méthode ==D20== dans le protocole démarrant par une étoile en utilisant le nom du package 
+(=='*Dice'==) parce que nous voulons que cette méthode soit packager (et sauvegarder) ensemble avec le code des classes
+que nous avond déjà créé (==Die==, ==DieHandle==,...).
+Il est possible en Pharo de définir des méthodes à l'extérieur d'un package.
+On appelle cette possibilité, extension de classes: elle consiste à ajouter des méthodes à des classes que nous n'avons pas définies.
+Par exemple ==D20== est défini dans la classe ==Integer==. De telles méthodes n'ont de sense que lorsque le package ==Dice== est chargé. C'est pourquoi nous voulons sauvegarder et charger le code de telles méthodes avec le package qui les créent.
+Voilà pouquoi nous l'indiquons par le protocole particulier  =='*Dice'==.
+Il s'agit d'une notation qui permet au système de savoir que cette méthode fait parti d'un autre package et pas du package de la classe ==Integer==.
 
-Now your tests should pass and this is probably a good moment to save your work either by publishing your package and to save your image. 
+Maintenant vos tests devraient passer.
 
-We can do the same for the default dice with different faces number: 4, 6, 10, and 20. But we should avoid duplicating logic and code. So first we will introduce a new method ==D:== and based on it we will define all the others.
+Vous pouvez faire la même chose pour des dés de différentes faces: 4, 6, 10, 20.
+Afin d'éviter de répéter plusieurs la même logique, nous allons introduire une méthode ==D:== et définir les autres à partir de cette là.
 
-Make sure that all the new methods are placed in the protocol =='*Dice'==. To verify you can press the button Browse of the Monticello package browser and you should see the methods defined in the class ==Integer==. 
+Assurez vous que toutes les méthodes ont été placées dans le protocole =='*Dice'==.
 
 [[[
 Integer >> D: anInteger
@@ -420,10 +442,11 @@ Integer >> D20
 	^ self D: 20
 ]]]
 
-We have now a compact form to create dice and we are ready for the last part: the addition of handles. 
+Nous avons une forme plus compacte pour créer des dés et nous allons passer à la dernière partie de ce chapitre: l'addition de jets de dés.
 
-!!! Handles addition
-Now what is missing is that possibility to add several handles as follows: ==2 D20 + 3 D10==. Of course let's write a test first to be clear on what we mean.
+!!! Gérer l'addition
+Ce qui manque maintenant c'est la possibilité d'additionner plusiers jets de dés comme suit: ==2 D20 + 3 D10==. 
+Bien sur, comme d'habitude commençons par écrire un test en premier afin de bien comprendre ce que bous voulons faire.
 
 [[[
 DieHandleTest >> testSumming
@@ -432,27 +455,24 @@ DieHandleTest >> testSumming
 	self assert: handle diceNumber = 5.
 ]]]
 
-We will define a method ==\+== on the ==DieHandle== class. In other languages this is often not possible or is based on operator overloading. In Pharo ==\+== is just a message as any other, therefore we can define it on the classes we want.
+Nous allons définir la méthode ==\+== sur la classe ==DieHandle==.
+Dans de nombreux langages de programmation, il n'est pas possible cela n'est pas possible ou alors il passer par la surcharge d'opérateurs (comme en C++).
+En Pharo ==\+== est juste un message comme un autre, que nous pouvons définir sur les classes si nous le souhaitons.
 
-Now we should ask ourself what is the semantics of adding two handles. Should we modify the receiver of the expression or create a new one. We preferred a more functional style and chose to create a third one. 
+Nous devons maintenant nous demander quelle est le sens de l'addition de deux jets de dés.
+Faut-il modifier le receveur de l'expression ou bien créer un nouvel objet. Nous avons choisi une style plutôt fonctionel et décider de créer un nouvel objet.
 
-The method ==\+== creates a new handle then adds the dice of the receiver to it, and then one of the handles passed as argument to the message. Finally we return it. 
+La méthode ==\+== crée donc un nouveau jet dé ajouter les dés du receveur à ce jet et ensuite les dés du jet de dés passé en paramètre. Finalement nous retournons le nouvel jet de dés.
 
 [[[
 DieHandle >> + aDieHandle
 	... Your solution ... 
 ]]]
 
-
-
-Now we can execute the method ==(2 D20 + 1 D6) roll== nicely and start playing role playing games, of course.
-
-
+Maintenant nous pouvons exécuter la méthode ==(2 D20 + 1 D6) roll== et pouvons commencer à jouer à un jeu de rôle si nous le souhaitons.
 
 !!! Conclusion
 
-This chapter illustrates how to create a small DSL based on the definition of some domain classes (here ==Dice== and  
- ==DieHandle==) and the extension of core class such as ==Integer==. It also shows that we can create packages with all the methods that are needed even when such methods are defined on classes external (here ==Integer==) to the package.  
-It shows that in Pharo we can use usual operators such as ==+== to express natural models.
-
-
+Ce chapitre illustre comment un créer un petit langage métier basé sur la définition de classe d'un domaine (ici ==Die== and ==DieHandle==) et ajoiter des extensions à ces classes de base dans ==Integer== par exemple.
+Nous avons également montrer que nous pouvons créer toutes les méthodes qui sont nécessaires même si certaines de ces méthodes sur des classes externes (ici ==Integer==) au package.
+Il est naturel dans un langage de programmation comme Phato d'utiliser et de définier des opérateurs comme ==+==.
