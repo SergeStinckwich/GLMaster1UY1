@@ -31,7 +31,8 @@ DieTest >> testInitializeIsOk
     self assert: Die new faces equals: 6
 ]]]
 
-Si vous exécutez ce test, le système va vous demander de créer un classe ==Die==. Faîtes le.
+Si vous exécutez ce test, le système va vous demander de créer un classe ==Die==.
+Faîtes le.
 
 !!!! Définir la classe Die
 
@@ -380,7 +381,7 @@ Les objets composites comme les objets représentant un document (un livre est c
 Nous sommes prêt à définir une syntaxe suivant les pratiques d'un jeu de rôle, i.e en utilisant ==2 D20== pour créer un jet de dés de deux dés à 20 faces chacun. Afin de pouvoir faire, cela, nous allons définir des extensions de classes: nous allons définir des méthodes supplémentaires dans la class ==Integer== mais ces méthodes ne seront disponibles que lorsque le package Dice sera chargé.
 
 Commençons par spécifier ce que nous voulons obtenir en écrivant un nouveau test dans la classe ==DieHandleTest==.
-Il est toujours bien de sauté sur l'occasion d'écrire de nouveaux tests. Lorsque nous exécutons ==2 D20== nous devrions obtenir un nouveau jet dées composé de deux dés. C'est ce que fait la méthode ==testSimpleHandler== :
+Il est toujours bien de sauté sur l'occasion d'écrire de nouveaux tests. Lorsque nous exécutons ==2 D20== nous devrions obtenir un nouveau jet dées composé de deux dés. C'est ce que fait la méthode ==testSimpleHandle== :
 
 [[[
 DieHandleTest >> testSimpleHandle
@@ -396,7 +397,10 @@ La méthode ==D20== crée simple un nouveau jeu de dés, ajoute le nombre correc
 
 [[[
 Integer >> D20
-	... Your solution ...
+	| handle |
+	handle := DieHandle new.
+	self timesRepeat: [ handle addDie: (Die withFaces: 20)].
+	^ handle
 ]]]
 
 !!!! A propos des extensions de classes
@@ -413,13 +417,17 @@ Il s'agit d'une notation qui permet au système de savoir que cette méthode fai
 Maintenant vos tests devraient passer.
 
 Vous pouvez faire la même chose pour des dés de différentes faces: 4, 6, 10, 20.
-Afin d'éviter de répéter plusieurs la même logique, nous allons introduire une méthode ==D:== et définir les autres à partir de cette là.
+Afin d'éviter de répéter plusieurs la même logique (application du principe DRY), nous allons introduire une méthode ==D:== et définir les autres à partir de cette là.
 
 Assurez vous que toutes les méthodes ont été placées dans le protocole =='*Dice'==.
 
 [[[
 Integer >> D: anInteger
-	... Your solution ...
+	
+	| handle |
+	handle := DieHandle new.
+	self timesRepeat: [ handle addDie: (Die withFaces: anInteger)].
+	^ handle
 ]]]
 
 [[[
@@ -462,11 +470,17 @@ En Pharo ==\+== est juste un message comme un autre, que nous pouvons définir s
 Nous devons maintenant nous demander quelle est le sens de l'addition de deux jets de dés.
 Faut-il modifier le receveur de l'expression ou bien créer un nouvel objet. Nous avons choisi une style plutôt fonctionel et décider de créer un nouvel objet.
 
-La méthode ==\+== crée donc un nouveau jet dé ajouter les dés du receveur à ce jet et ensuite les dés du jet de dés passé en paramètre. Finalement nous retournons le nouvel jet de dés.
+La méthode ==\+== crée donc un nouveau jet dé où l'on a ajouté les dés du receveur à ce jet et ensuite les dés du jet de dés passé en paramètre.
+Finalement nous retournons le nouvel jet de dés.
 
 [[[
 DieHandle >> + aDieHandle
-	... Your solution ... 
+	"Returns a new handle that represents the addition of the receiver and the argument."
+	| handle |
+	handle := self class new.
+	self dice do: [ :each | handle addDie: each ].
+	aDieHandle dice do: [ :each | handle addDie: each ].
+	^ handle
 ]]]
 
 Maintenant nous pouvons exécuter la méthode ==(2 D20 + 1 D6) roll== et pouvons commencer à jouer à un jeu de rôle si nous le souhaitons.
