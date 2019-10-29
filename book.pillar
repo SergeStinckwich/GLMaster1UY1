@@ -5,6 +5,7 @@ Les chapitres de ce livre sont des adaptations de livres existants écrits par l
 
 
 ${inputFile:path=Chapters/Introduction/Introduction.pillar}$
+${inputFile:path=Chapters/UnderstandingMessage/UnderstandingMessage.pillar}$
 ${inputFile:path=Chapters/DSL/DSL.pillar}$
 ${inputFile:path=Chapters/DoubleDispatch/DoubleDispatch.pillar}$
 ${inputFile:path=Chapters/Visitor/Visitor.pillar}$
