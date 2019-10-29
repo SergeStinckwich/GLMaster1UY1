@@ -1,10 +1,2 @@
-# Patterns of Design
+# Cours de Génie Logiciel - Master 1 - Université de Yaoundé I
 
-This book explains presents design elements of object programming 
-
-[![Build status][badge]][travis]
-
-[travis]: https://travis-ci.org/SquareBracketAssociates/PatternsOfDesign
-[badge]: https://travis-ci.org/SquareBracketAssociates/Booklet-PatternsOfDesign.svg?branch=master
-
-The result from the latest successful Travis build can be found on the release panel of this page.
