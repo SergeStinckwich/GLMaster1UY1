@@ -1,65 +1,10 @@
+Ce livre est le document qui accompagne le cours de Génie Logiciel de l'Université de Yaoundé I, dispensé par Serge Stinckwich de 2018 à 2020.
+Ce cours permet d'illustrer les fondements de la programmation et de la conception orienté objet, en utilisant le langage de programmation Pharo.
 
+Les chapitres de ce livre sont des adaptations de livres existants écrits par la communauté Pharo.
 
 
 ${inputFile:path=Chapters/Introduction/Introduction.pillar}$
-
-! Getting started
-
 ${inputFile:path=Chapters/DSL/DSL.pillar}$
-${inputFile:path=Chapters/Expression/Expression.pillar}$
-
-! Power of Messages
 ${inputFile:path=Chapters/DoubleDispatch/DoubleDispatch.pillar}$
-${inputFile:path=Chapters/PaperStoneScissor/PaperStoneScissor.pillar}$
-
-! Playing with Visitors
-Here I should take the slides flow from the design mooc lectures. 
-
 ${inputFile:path=Chapters/Visitor/Visitor.pillar}$
-
-
-
-
-
-
-!! Playing with Interpreters
-
-Returning an integer is not really nice because we cross boundaries.
-Visitor then after I should make sure that we only return expressions
-of the same domain and with a stack.
-
-
-!!! Using the Pharo execution stack
-
-[[[
-EEvaluator >> visitMultiplication: aMultiplication
-	^ (EConstant new
-		value: (self evaluate: aMultiplication left) * 
-					(self evaluate: aMultiplication right)  
-]]]
-
-!!! With an explicit interpretation  stack
-[[[
-EEvaluator >> visitMultiplication: aMultiplication
-	self evaluate: aMultiplication left.
-	self evaluate: aMultiplication right.
-	self push: (EConstant new
-					value: self pop value * self pop value)  
-]]]
-
-!! Beacon
-
-!! Parsing alain?
-
-!!  Uno 
-
-*https://github.com/cdlm/kata-uno*
-
-!! Ideas
-Lire
-- Implement sokoban
-
-- Ants
-- Parser
-- Implementation turtle
-

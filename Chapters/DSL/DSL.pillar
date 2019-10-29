@@ -464,7 +464,7 @@ DieHandleTest >> testSumming
 ]]]
 
 Nous allons définir la méthode ==\+== sur la classe ==DieHandle==.
-Dans de nombreux langages de programmation, il n'est pas possible cela n'est pas possible ou alors il passer par la surcharge d'opérateurs (comme en C++).
+Dans de nombreux langages de programmation, il n'est pas possible cela n'est pas possible ou alors il passer par la surcharge d'opérateurs (comme en C\+\+).
 En Pharo ==\+== est juste un message comme un autre, que nous pouvons définir sur les classes si nous le souhaitons.
 
 Nous devons maintenant nous demander quelle est le sens de l'addition de deux jets de dés.
