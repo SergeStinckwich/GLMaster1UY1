@@ -221,9 +221,9 @@ Nous devons maintenant trouvé une solution pour le cas où l'argument du messag
 En fait, l'argument va recevoir le message ==sumWithDie:==.
 De telle sorte que si nous définissons une méthode avec ce nom dans la classe ==DieHandle== elle sera exécutée loesque l'argument du message ==\+== est un jet de dé.
 
-We know how to sum a die with a die handle: we simply create a new die handle, add all the die of the previous die handle to the new one and add the argument too. 
+Nous savons comment sommer un dé avec un jet de dé: il suffit simplement de créer un jet de dés, d'ajouter tous les dés du précédent jet de dé au nouveau et d'ajouter l'argument aussi.
 
-So we just have to define the method ==sumWithDie:== to the class ==DieHandle== implementing this logic. 
+Il nous suffit donc de définir la méthode ==sumWithDie:== à la classe ==DieHandle== en implémentant cette logique.
 
 [[[
 DieHandle >> sumWithDie: aDie
@@ -234,26 +234,26 @@ DieHandle >> sumWithDie: aDie
 	^ handle
 ]]]
 
-Now we are able to sum a die with a die handle as shown in Figure *@figDieDoubleDispatchPartialArgDieHandle*. The test ==testAddingADieAndHandle== should now pass.
+Maintenant nous somme capable d'ajouter un dé avec un jet de dé comme indiqué dans la figure *@figDieDoubleDispatchPartialArgDieHandle*. Le test ==testAddingADieAndHandle== doit maintenant passer.
 
-+Summing a die and a dicable.>file://figures/DieDoubleDispatchPartialArgDieHandle.pdf|width=90|label=figDieDoubleDispatchPartialArgDieHandle+
++Ajouter un dé et un jet de dé.>file://figures/DieDoubleDispatchPartialArgDieHandle.pdf|width=90|label=figDieDoubleDispatchPartialArgDieHandle+
 
 !!! Revenons en arrière
 
-You may ask why this is working. We defined two methods ==sumWithDie:== one on class ==Die== and one on the class ==DieHandle==
-and when the method ==\+== on class ==Die== will send the message ==sumWithDie:== to either a die or a die handle, the message dispatch will select the correct method ==sumWithDie:== for us as shown in Figure *@figDieDoubleDispatchPartial*.
-
+Vous pouvez vous demander pourquoi cela marche.
+Nous définissons deux méthodes ==sumWithDie:== une sur la classe ==Die== et une autre sur la classe ==DieHandle==. Lorsque la méthode ==\+== de la classe ==Die== envoie le message ==sumWithDie:== soit à un dé soit à un jet de dés, la sélection de messages (dispatch) va sélectionner la méthode correcte ==sumWithDie:== pour nous comme indiqué dans la figure *@figDieDoubleDispatchPartial*.
 
 +Summing a die and a dicable>file://figures/DieDoubleDispatchPartial.pdf|width=90|label=figDieDoubleDispatchPartial+
 
 
 !!! Maintenant le jet de dés comme receveur
 
-Our solution does not handle the case where the receiver is a die handle. This is what we will address now. 
-Now we are ready to apply the same pattern than before but for the case where the receiver is a die handle. We will just say to the argument of the message ==\+== that we want to sum it with a ''die handle'' this time.
+Notre solution ne prend pas en charge le cas où le receveur est un jet de dé.
+C'est ce que l'on allons faire maintenant.
+Nous somme prêt à appliquer la méthode qu'auparavant mais pour le cas où le receveur est un jet de dé.
+Nous allons seulement dire à l'argument du message ==\+== que nous voulons le sommer avec un ''jet de dés'' cette fois ci.
 
-We know how to sum two die handles, it is the code we already defined in the previous chapter. We rename the ==\+== method
-as ==sumWithHandle:== to be able to invoke it while redefining the method ==\+==. Basically this method creates a new handle, then adds the dice of the receiver and the argument to it and returns the new handle.
+Nous savons comment additionner deux jets de dés, c'est le code que nous avons déjà écrit dans le chapitre précédent. Nous renommons la méthode ==\+== en ==sumWithHandle:== afin de pouvoir l'appeller en redéfinissant la méthode ==\+==. Concrètement cette méthode construit un nouveau jet de dés, ajout les dés du receveur et de l'argument à ce jet et le retourne.
 
 [[[
 DieHandle >> sumWithHandle: aDieHandle
@@ -264,22 +264,24 @@ DieHandle >> sumWithHandle: aDieHandle
 	^ handle
 ]]]
 
-Now we can define a more powerful version of ==\+== by simply sending the message ==sumWithHandle:== to the ""argument"" (aDicable) of the message ==\+==. Again we send a message to the argument (==aDicable==) to kick in a new message lookup and dispatch for the message ==sumWithHandle:==.
+Nous pouvons maintenant définir une version beaucoup plus puissante de ==\+== en envoyant simplement le message ==sumWithHandle:== à l' ''argument'' du message ==\+==.
+De nouveau, nous envoyons un message à l'argument afin de faire un dispatch pour le message ==sumWithHandle:==.
 
 [[[
 DieHandle >> + aDicable
 	^ aDicable sumWithHandle: self
 ]]]
 
-We said that this is version of ==\+== is more powerful than the one of ==sumWithHandle:== because once we will implement the missing method ==sumWithHandle:== on the class ==Die==, the ==\+== method will be able to sum a die handle with a die or two die handles. 
+Nous disons que la version de ==\+== est plus puissante que celle de ==sumWithHandle:== parce qu'une fois que nous aurons implémenté la méthode manquante ==sumWithHandle:== sur la classe ==Die==, la méthode ==\+== sera capable d'additioner un jet de dés avec un dé ou deux jets de dés.
 
-+Handling all the cases: summing a die/die handle with a die/die handle .>file://figures/DieDoubleDispatchFull.pdf|width=90|label=figDieDoubleDispatchFull+
++Gérer tous le cas: ajouter un dé/un jet de dés avec un dé/un jet de dés.>file://figures/DieDoubleDispatchFull.pdf|width=90|label=figDieDoubleDispatchFull+
 
-Up until here we did not change much and all the tests adding two die handles should continue to run. 
+Les tests additionnant deux jets de dés devraient continuer à fonctionner correctement.
 
 !!! sumWithHandle: dans la classe Die
-To get the possibility to sum a die handle with a single die, we just have to define a new method ==sumWithHandle:== on the ==Die== class. 
-The logic is similar to the one adding one die to one die handle
+
+Afin d'avoir la possibilité de sommer un jet de dés avec un simple dé, nous avons juste besoin de définir la nouvelle méthode ==sumWithHandle:== cette fois ci sur la classe ==Die==.
+La logique de cette méthode est similaire à celle ajoutant un dé à un jet de dés.
 
 [[[
 Die >> sumWithHandle: aDieHandle
@@ -290,10 +292,12 @@ Die >> sumWithHandle: aDieHandle
 	^ handle
 ]]]
 
-Note that we could have  sent the message ==aDieHandle sumWithDie: self== as body of ==sumWithHandle:== definition.
+Noter que nous aurions pu envouer le message ==aDieHandle sumWithDie: self== comme corps de la méthode ==sumWithHandle:==.
 
-Figure *@figDieDoubleDispatchFull* shows the full set up. We suggest to follow the execution of messages for the different cases to understand that just sending a new message to the argument and relying on method dispatch produces modular conditional execution.
-Now the following test should pass and we are done.
+La figure *@figDieDoubleDispatchFull* montre l'ensemble.
+Nous vous suggérons de suivre l'exécution des messages pour les différents cas à afin de bien comprendre que juste envoyer un nouveau à l'argument et reposer sur le principe du dispatch produi une exécution conditionnelle modulaire.
+
+Les tests suivants doivent maintenant passé et nous avons fini l'implémentation.
 
 [[[
 DieHandleTest >> testAddingAnHandleWithADie
