@@ -10,14 +10,15 @@ Alors que cette extension semble triviale dans un premier temps, nous allons voi
 
 Le ''double dispatch'' est une technique qui permet d'éviter de coder en dur des vérifications sur les types des objets et permet de définir incrémentalement la gestion du comportement de toutes les possibilités.
 Le double dispatch est basé sur le principe orienté objet ''Don't ask, tell'' appliqué deux fois.
-Dans le cas 
-In the case of the ==\+== message, there is a first dispatch to select the adequate method. Then a second dispatch happens when in this method a new message is sent to the ''argument'' of the ==\+== message telling this argument the way the current receiver should be summed. This description is clearly too abstract so we will go over a full example to explain it.
+Dans le cas du message ==\+==, il y a une première sélection (dispatch) qui permet de sélectionner la bonne méthode.
+Puis une deuxième sélection (dispatch) est effectué lorsque dans la méthode, un nouveau message est envoyé à l' ''argument'' du message ==\+== qui indique à l'argument comment le receveur doit être ajouté.
+Afin d'expliquer plus concrètement les choses, voyons un exemple complet.
 
 !!! Un petit rappel
 
-Dans le chapitre précédent, nous avons implémenté un peu petit DSL afin d'additionner des dés et de gérer des jets de plusieurs dés.
+Dans le chapitre précédent, nous avons implémenté un petit DSL afin d'additionner des dés et de gérer des jets de plusieurs dés.
 Avec ce DSL, vous pouvons créer des dés et les ajouter à des jets de dés (instance de DieHandle).
-Later on you could sum two different die handles and obtain a new one following the "Dungeons and Dragons" ruling book.
+Nous avons pu plus tard, additionner deux jets de dés afin d'en obtenir une nouvelle.
 
 Les tests qui suivent montre ces deux comportements: premièrement la création d'un jet de dés et deuxièment la somme de deux jets de dés.
 
@@ -38,7 +39,9 @@ DieHandleTest >> testSummingWithNiceAPI
 	self assert: handle diceNumber = 5
 ]]]
 
-The implementation of ==\+== was simple since we could only sum die handles together. The method ==\+== creates a new handle, adds the dice of the receiver and of the argument to the newly created handle and returns it. 
+
+L'implémentation de ==\+== a été simple parce que nous avons seulement des jets de dés à ajouter ensemble.
+La méthode ==\+== crée une nouveau jeu de dé, ajout les dés du recevoir et de l'argument au nouveau jet de dés créé et le retourne.
 
 [[[
 DieHandle >> + aDieHandle
@@ -51,17 +54,18 @@ DieHandle >> + aDieHandle
 ]]]
 
 
-!!! New requirements 
+!!! Nouvelles exigences
 
-The first requirement we have is that we want to be able to add two dice together and of course we should obtain a die handle as illustrated by the following test. 
+La première exigence que nous avons est que nous voulons qu'il soit possible d'additioner deux dés ensemble et bien nous devons obtenir un jeu de dés comme indiqué par le test ci-dessous.
 
-We want to add two dice together:
+
+Nous voulons ajouter deux dés ensemble:
 
 [[[
 (Die withFaces: 6) + (Die withFaces: 6)
 ]]]
 
-The second requirement is that we want to be able to mix and add a die to a die handle or vice versa as illustrated below: 
+La deuxième exigence est que nous voulons pouvoir mélanger et ajouter un dé avec un jet de dé et vice versa comme illustré ci-dessous:
 
 [[[
 2 D20 + (Die withFaces: 6)
@@ -72,11 +76,12 @@ The second requirement is that we want to be able to mix and add a die to a die 
 ]]]
 
 
-!!! Turning requirements as tests
+!!! Transformer les exigences en tests
 
-Since we are test-infested, we turn such expected behavior into automatically testable expected behavior: we write them as tests. 
+Comme nous sommes infecté par les tests, nous transformons le comportement que nous souhaitons obtenir en comportement automatiquement testables.
 
-We want to add two dice together:
+Nous voulons ajouter deux dés ensemble:
+
 [[[
 DieTest >> testAddTwoDice
 	| hd |
@@ -84,7 +89,7 @@ DieTest >> testAddTwoDice
 	self assert: hd dice size = 2.
 ]]]
 
-The second requirement is that we want to be able to mix and add a die to a die handle or vice versa as illustrated by the two following tests: 
+La deuxième exigence sous la forme des deux tests:
 
 [[[
 DieTest >> testAddingADieAndHandle
@@ -108,12 +113,11 @@ DieHandleTest >> testAddingAnHandleWithADie
 	self assert: res diceNumber equals: 3
 ]]]
 
-Now we are ready to implement such requirements. 
+Maintenant nous sommes prêt pour implémenter ces exigences.
 
+!!! Première implémentation
 
-!!! The first implementation
-
-The first solution is to explicitly type check the argument to decide what to do. 
+La première solution consiste à vérifier explicitement le type de l'argument afin de décider quoi faire.
 
 [[[
 DieHandle >> + aDieOrADieHandle
@@ -138,22 +142,26 @@ Die >> + aDieOrADieHandle
 	^ selfAsDieHandle + aDieOrADieHandle
 ]]]
 
-The problem of this solution is that it does not scale. As soon as we will have other kinds of arguments we will have to check more and more cases. You may think that this is just a spurious argument. But when you have a model that has around 35 different kinds of nodes as in Pillar, the document processing system used to produce this book, this kind of testing logic becomes a nightmare to maintain and extend.
+Le problème de cette solution, c'est qu'elle ne passe pas à l'échelle.
+Plus nous aurons différents types d'arguments, plus cela va nécessité de rajouter des cas à tester.
+Cela peut vous sembler un argement fallacieux, mais lorsque vous avez 35 sortes d'arguments comme dans la librairie Pillar (https://github.com/pillar-markup/pillar), le système de gestion de document utilisé pour produire ce document, il n'est plus possible de maintenir une telle solution.
 
-!!! Sketching double dispatch
-We can do better.  The logic of the solution we have in mind is quite simple but it may be destabilizing at first.
-Let us sketch it.
+!!! Esquisse du double dispatch
 
-- When we execute a method we know its receiver and the kind of receiver we have: it can be a die or a die handle. The method dispatch will select the correct method at runtime. Imagine that we have two ==\+== methods for each class ==Die== and ==DieHandle==. When a given method ==\+== will be executed, we will know the exact kind of the receiver. For example, when the method ==\+== defined on the class ==Die== will be executed, we will know that the receiver is a die (instance of this class). Similarly when the method ==\+== defined on the class ==DieHandle== will be executed, we will know that the message receiver is a die handle. This is the power of method dispatch: it selects the right method based on the message receiver.
+On peut faire mieux !
+La logique de la solution est simple mais peu sembler étrange dans un premier temps.
+Essayons de l'esquisser.
 
-- Then the idea is to tell the argument that we want to sum it with that given receiver. It means that each ==\+== method on a different class has just to send a different message based on the fact that the receiver was a die or a die handle to its argument and let the method dispatch to act once again. After this second dispatch, the correct method will be selected. 
+- lorsqu'on exécute une méthode nous connaissons ce receveur et le type de receveur que nous avons: cela peut être un dé ou un jet de dé. La sélection de la méthode (dispatch) va permettre de trouver la méthode correcte à l'exécution. Imaginons que nous avons deux méthodes ==\+== pour chaque class ==Die== et ==DieHandle==. Lorsque la méthode ==\+== sera exécuté, nous connaitrons le type du receveur.
+Par exemple, si la méthode ==\+== définie sur la classe ==Die== est exécuté, nous savons alors que le receveur est un dé (instance de cette classe). De la même manière, lorsque la méthode ==\+== définie sur la classe ==DieHandle== est exécutée, nous savons que le receveur est un jet de dés. C'est le principe de la sélection de méthode (dispatch), la méthode correspondante est choisi en fonction du receveur du message.
+- Ensuite l'idée est de dire à l'argument de que nous voulons le sommer avec le receveur. Cela signifie que chaque méthode ==\+== d'une classe différence doit juste envoyer un message différent à son atgument basé sur le fait que le receveur était un dé ou un jet de dé et ainsi laisser faire de nouveau le travail de dispatch. Après ce second dispatch, la méthode correcte sera sélectionnée.
 
-But let us makes this really concrete.
+Rendons maintenant cela plus concret.
 
+!!! Ajouter deux dés
 
-!!! Adding two dice
-Let us step back and start by supporting the sum of two dice. This is rather simple we create and return a die 
-handle to which we add the receiver and the argument.
+Revenons un peu en arrière et commencons par supporter l'ajout de deux dés.
+C'est très simple et on retourne un jet de dé dans lequel nous ajoutons le receveur et l'argument.
 
 [[[	
 Die >> + aDie
@@ -163,13 +171,12 @@ Die >> + aDie
 		addDie: aDie; yourself
 ]]]
 
-Our first test should pass ==testAddTwoDice==.
-But this solution does not support the fact that the argument can be either a die or a die handle.
+Le premier test doit passer ==testAddTwoDice==.
+Mais cette solution ne supporte pas le fait que l'argument peut être soir un dé soit un jé de dés.
 
+!!! Ajouter un dé et un dé ou un jet de dés
 
-!!! Adding a die and a die or a handle
-
-Now we want to handle the fact that we can add a die or a die handle to the receiver as illustrated by the test ==testAddingADieAndHandle==.
+Maintenant nous voulons gérer le fait que nous pouvons additioner un dé ou un jet de dé à un receveur comme illustré par le test suivant ==testAddingADieAndHandle==.
 
 [[[
 DieTest >> testAddingADieAndHandle
@@ -182,7 +189,8 @@ DieTest >> testAddingADieAndHandle
 	self assert: hd dice size equals: 2
 ]]]
 
-The previous method ==\+== is definitively what we want to do when we have two dice. So let us rename it as ==sumWithDie:== so that we can invoke it later. 
+La méthode précédente ==\+== est définitivement ce que nous voulons quand nous avons deux dés.
+Renommons la comme ==sumWithDie:== afin de pouvoir l'appeller par la suite.
 
 [[[
 Die >> sumWithDie: aDie
@@ -192,24 +200,26 @@ Die >> sumWithDie: aDie
 		addDie: aDie; yourself
 ]]]
 
-Now what we can do is to implement ==\+== as follows. Notice that we named the argument ==aDicable== because we want to convey that the argument can be either a die or a die handle. 
+Maintenant nous pouvons implémenter ==\+== comme suit. Noter que vous avons nommé l'argent ==aDicable== afin de véhiculer l'idée que l'argument peut être soit un dé, soit un jet de dé.
 
 [[[
 Die >> + aDicable	
 	^ aDicable sumWithDie: self
 ]]]
 
-We tell the argument ==aDicable== (which can be a die or a die handle) that we want to add a die to it (we know that  ==self== in this method is a ==Die== because this is the method of this class that is executed). When rewritting the ==\+== method, we switched ==self== and ==aDicable== to send the new message ==sumWithDie:== to the argument (==aDicable==). This switch kicks a new method dispatch and we finally have a double dispatch (one of ==\+== and one for ==sumWithDie:==).
+Nous disons à l'argument ==aDicable== (qui peut être un dé ou un jet de dé) que nous voulons additioner un dé à celui ci (nous savons que ==self== dans cette méthode est un ==Die== puisqu'il s'agit d'une méthode de cette classe que nous exécutons).
+En réécrivant la méthode ==\+==, nous invertissons ==self== et ==aDicable== pour envoier le nouveau messaeg ==sumWithDie:== à l'argument (==aDicable==).
+Cette inversion déclenche une nouvelle sélection (dispatch) et réaliser bien un double dispatch (un sur ==\+== et l'autre avec ==sumWithDie:==).
 
-In our two tests ==testAddTwoDice== and ==testAddingADieAndHandle== we know that the receiver is a die because the method is defined in the class of ==Die==. At this point the test ==testAddTwoDice== should pass because we are adding two dice as shown in Figure *@figDieDoubleDispatchPartialArgDie*.
+Dans nos deux tests ==testAddTwoDice== et ==testAddingADieAndHandle== nous savons que le receveur est un dé puisque la méthode est définie dans la classe de ==Die==. A partir de ce moment, le test ==testAddTwoDice== doit passer parce que nous additionnons deux dés comme indiqué à la figure *@figDieDoubleDispatchPartialArgDie*.
 
-+Summing two dice and be prepared for more.>file://figures/DieDoubleDispatchPartialArgDie.pdf|width=70|label=figDieDoubleDispatchPartialArgDie+
++Ajout de deux dés.>file://figures/DieDoubleDispatchPartialArgDie.pdf|width=70|label=figDieDoubleDispatchPartialArgDie+
 
+!!! Lorsque l'argument est un jé de dés
 
-!!! When the argument is a die handle
-
-Now we still have to find a solution for the case where the argument to the message ==\+== is a die handle.
-In fact, the argument will receive the message ==sumWithDie:==. Therefore if we define a method with that name in the class ==DieHandle== it will be executed when the argument of message ==\+== is a die handle.
+Nous devons maintenant trouvé une solution pour le cas où l'argument du message ==\+== est un jet de dés.
+En fait, l'argument va recevoir le message ==sumWithDie:==.
+De telle sorte que si nous définissons une méthode avec ce nom dans la classe ==DieHandle== elle sera exécutée loesque l'argument du message ==\+== est un jet de dé.
 
 We know how to sum a die with a die handle: we simply create a new die handle, add all the die of the previous die handle to the new one and add the argument too. 
 
@@ -224,23 +234,20 @@ DieHandle >> sumWithDie: aDie
 	^ handle
 ]]]
 
-
 Now we are able to sum a die with a die handle as shown in Figure *@figDieDoubleDispatchPartialArgDieHandle*. The test ==testAddingADieAndHandle== should now pass.
 
 +Summing a die and a dicable.>file://figures/DieDoubleDispatchPartialArgDieHandle.pdf|width=90|label=figDieDoubleDispatchPartialArgDieHandle+
 
-!!! Stepping back
+!!! Revenons en arrière
 
 You may ask why this is working. We defined two methods ==sumWithDie:== one on class ==Die== and one on the class ==DieHandle==
 and when the method ==\+== on class ==Die== will send the message ==sumWithDie:== to either a die or a die handle, the message dispatch will select the correct method ==sumWithDie:== for us as shown in Figure *@figDieDoubleDispatchPartial*.
 
 
-
-
 +Summing a die and a dicable>file://figures/DieDoubleDispatchPartial.pdf|width=90|label=figDieDoubleDispatchPartial+
 
 
-!!! Now a DieHandle as receiver
+!!! Maintenant le jet de dés comme receveur
 
 Our solution does not handle the case where the receiver is a die handle. This is what we will address now. 
 Now we are ready to apply the same pattern than before but for the case where the receiver is a die handle. We will just say to the argument of the message ==\+== that we want to sum it with a ''die handle'' this time.
@@ -270,7 +277,7 @@ We said that this is version of ==\+== is more powerful than the one of ==sumWit
 
 Up until here we did not change much and all the tests adding two die handles should continue to run. 
 
-!!! sumWithHandle: on Die class
+!!! sumWithHandle: dans la classe Die
 To get the possibility to sum a die handle with a single die, we just have to define a new method ==sumWithHandle:== on the ==Die== class. 
 The logic is similar to the one adding one die to one die handle
 
@@ -284,7 +291,6 @@ Die >> sumWithHandle: aDieHandle
 ]]]
 
 Note that we could have  sent the message ==aDieHandle sumWithDie: self== as body of ==sumWithHandle:== definition.
-
 
 Figure *@figDieDoubleDispatchFull* shows the full set up. We suggest to follow the execution of messages for the different cases to understand that just sending a new message to the argument and relying on method dispatch produces modular conditional execution.
 Now the following test should pass and we are done.
@@ -300,20 +306,15 @@ DieHandleTest >> testAddingAnHandleWithADie
 	self assert: res diceNumber equals: 3
 ]]]
 
-
 !!! Conclusion
 
-When we step back, we see that we applied the ''Don't ask, tell'' principle twice:
-First the message ==\+== selects the corresponding methods in either ==Die== or ==DieHandle== classes. Then a more specific message is sent to the argument and the dispatch kicks in again selecting the correct method for the messages ==sumWithDie:== or ==sumWithHandle:==.
+Si nous récapitulons ce que nous avons fait jusq'à présent, nous voyons que nous appliqué le principe ''Don't ask, tell'' deux fois:
+une première fois, le message ==\+== sélectionne la méthode correspondante soit dans les classe ==Die== ou ==DieHandle==. Puis un message spécifique est envoyé à l'argument et de nouveau le dispatch sélectionne la méthode correcte ==sumWithDie:== ou ==sumWithHandle:==.
 
-In this chapter we presented double dispatch. The idea is to use method dispatch two times.
-While the resulting design is simple, it is not trivial to deeply understand and it requires time to digest double dispatch. 
-At its core, double dispatch relies on the fact that sending a message to an object selects the correct method -- and 
-sending another message to the message argument will select a new method. Therefore we have effectively selected a method according to the receiver and the argument of a message.
+Dans ce chapitre, nous avond introduit la notion de double dispatch (double sélection).
+L'idée est d'utiliser le simple dispatch deux fois de suite.
+Bien que la conception résultante est simple, il n'est pas trivial dans un premier à comprendre le sens profond et il faut du temps pour bien assimiler cette notion.
 
-
-
-
-Double dispatch is the basis for the Visitor Design pattern that is effective when dealing with complex data structure such as documents, compilers. In such context it is not rare to have more than 30 or 40 different nodes that should be manipulated together to produce specific behavior. 
-
-
+Fondamentalement, le double dispatch repose sur le fait qu'envoyer un message à un objet sélectionne la méthode correspondante -- et envoyer un autre message à l'argument du premier message permet de sélectionner une nouvelle méthode.
+De cette façon, nous sélectionnons une méthode en fonction à la fois de son receveur et de l'argument du message.
+Le double dispatch est à la base du visiteur de conception Visiteur qui est utile lorsque l'on a besoin de gérer des données de structures complexes comme des documents ou des compilateurs. Dans ce cas, il n'est pas rare d'avoir jusqu'à 30 sortes d'objets à gérer ensemble afin de produire le comportement correct.
